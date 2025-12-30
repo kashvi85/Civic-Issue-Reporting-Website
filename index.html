@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Civic Issue Reporting</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fa-solid fa-city"></i> Civic Issue Reporting
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active">User Login</a>
+            <a href="#" class="nav-link">Admin Login</a>
+            <a href="contact.html" class="nav-link">Contact Us</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="page-title">
+            <h1>User Login</h1>
+            <p>Login to report a civic issue</p>
+        </div>
+
+        <div class="auth-card">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="mobile">
+                        <i class="fa-solid fa-envelope"></i>
+                        <!-- Kept envelope icon style but context is Mobile, maybe change to phone? -->
+                        <!-- Actually, per request "change email to mobile", let's use a phone icon -->
+                        <i class="fa-solid fa-phone"></i> Mobile Number
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone input-icon"></i>
+                        <input type="tel" id="mobile" class="form-input" placeholder="Enter your mobile number" required
+                            pattern="[0-9]{10}" title="Please enter a valid 10-digit mobile number">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">
+                        <i class="fa-solid fa-key"></i> Password
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                            required>
+                    </div>
+                    <div style="text-align: right; margin-top: 5px;">
+                        <a href="#" id="forgotPasswordLink"
+                            style="font-size: 0.85rem; color: var(--primary-color); text-decoration: none;">Forgot
+                            password?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Login</button>
+
+                <div class="auth-links">
+                    New user? <a href="register.html">Register here</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div class="modal-overlay" id="resetPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <button class="close-btn" id="closeResetModal"><i class="fa-solid fa-times"></i></button>
+            </div>
+
+            <!-- Step 1: Verify Mobile -->
+            <form id="verifyMobileForm">
+                <div class="form-group">
+                    <label class="form-label" for="resetMobile">
+                        <i class="fa-solid fa-phone"></i> Mobile Number
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone input-icon"></i>
+                        <input type="tel" id="resetMobile" class="form-input" placeholder="Enter registered mobile"
+                            required pattern="[0-9]{10}" title="Please enter a valid 10-digit mobile number">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Verify Number</button>
+            </form>
+
+            <!-- Step 2: New Password (initially hidden) -->
+            <form id="newPasswordForm" style="display: none;">
+                <p class="highlight-text" style="text-align: center; margin-bottom: 1rem;">Mobile Verified!</p>
+                <div class="form-group">
+                    <label class="form-label" for="newPassword">
+                        <i class="fa-solid fa-lock"></i> New Password
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="newPassword" class="form-input" placeholder="Enter new password"
+                            required>
+                    </div>
+                </div>
+                <!-- Hidden input to store mobile number after verification -->
+                <input type="hidden" id="verifiedMobile">
+                <button type="submit" class="btn-primary">Reset Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Firebase SDKs (using UMD for simple HTML inclusion) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+
+</html>
