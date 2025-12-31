@@ -81,9 +81,13 @@ if (loginForm) {
 
             // Verify Password
             if (userData.password === password) {
+                // Store current user in localStorage for session management
+                localStorage.setItem('currentUser', mobile);
+                localStorage.setItem('currentUserName', userData.fullName);
+                
                 alert(`Welcome back, ${userData.fullName}! Login Successful.`);
-                // Here you would redirect to the dashboard
-                // window.location.href = 'dashboard.html'; 
+                // Redirect to report page after successful login
+                window.location.href = 'report.html'; 
             } else {
                 alert("Incorrect Password. Please try again.");
             }

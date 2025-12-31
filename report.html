@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Civic Issue - Civic Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fa-solid fa-city"></i> Civic Issue Reporting
+        </div>
+        <div class="nav-links">
+            <a href="dashboard.html" class="nav-link">Dashboard</a>
+            <a href="report.html" class="nav-link active">Report Issue</a>
+            <a href="#" id="logoutBtn" class="nav-link">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Report Container -->
+    <div class="report-container">
+        <div class="report-header">
+            <h1><i class="fa-solid fa-triangle-exclamation"></i> Report Civic Issue</h1>
+            <p>Help us keep your community better by reporting problems</p>
+        </div>
+
+        <div class="report-form-content">
+            <form id="reportForm">
+                <!-- Photo Upload Section -->
+                <div class="report-section">
+                    <h2 class="section-title"><i class="fa-solid fa-camera"></i> Upload Photo / फोटो अपलोड करें</h2>
+                    
+                    <div class="form-group">
+                        <label>Capture or Upload</label>
+                        <div class="button-group">
+                            <button type="button" class="btn" id="takePhotoBtn">
+                                <i class="fa-solid fa-camera"></i> Take Photo
+                            </button>
+                            <button type="button" class="btn" id="galleryBtn">
+                                <i class="fa-solid fa-folder"></i> Choose from Gallery
+                            </button>
+                        </div>
+                        <input type="file" id="cameraInput" accept="image/*" capture="camera">
+                        <input type="file" id="galleryInput" accept="image/*">
+                        <p class="helper-text">Take a clear photo of the issue or select from your files</p>
+                        <div class="preview-box" id="photoPreview">
+                            <i class="fa-solid fa-image"></i> No photo selected yet
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Modal -->
+                <div class="camera-modal" id="cameraModal">
+                    <div class="camera-container">
+                        <div class="camera-header">
+                            <h3>Capture Photo</h3>
+                            <button type="button" class="close-btn" id="closeCameraBtn"><i class="fa-solid fa-times"></i></button>
+                        </div>
+                        <div class="camera-content">
+                            <video id="cameraFeed" playsinline autoplay muted></video>
+                            <canvas id="photoCanvas" style="display: none;"></canvas>
+                            <div class="camera-controls">
+                                <button type="button" class="btn btn-danger" id="cancelCameraBtn">
+                                    <i class="fa-solid fa-times"></i> Cancel
+                                </button>
+                                <button type="button" class="btn btn-primary" id="capturePhotoBtn">
+                                    <i class="fa-solid fa-camera"></i> Capture
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Issue Details Section -->
+                <div class="report-form-content">
+                <div class="report-section">
+                    <h2 class="section-title"><i class="fa-solid fa-list"></i> Issue Details / समस्या विवरण</h2>
+                    
+                    <div class="form-group">
+                        <label for="issueType">Issue Type <span class="required">*</span></label>
+                        <select id="issueType" required>
+                            <option value="">Select issue type</option>
+                            <option value="Pothole">Pothole / गड्ढा</option>
+                            <option value="Streetlight">Street Light / सड़क की बत्ती</option>
+                            <option value="Garbage">Garbage Collection / कचरा संग्रह</option>
+                            <option value="Water">Water Supply / पानी की आपूर्ति</option>
+                            <option value="Drainage">Drainage / नाली</option>
+                            <option value="Road">Road Damage / सड़क क्षति</option>
+                            <option value="Other">Other / अन्य</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description / विवरण <span class="required">*</span></label>
+                        <textarea id="description" placeholder="Describe the issue in detail..." required></textarea>
+                        <p class="helper-text">Please provide a clear description of the problem</p>
+                    </div>
+
+                        <div class="form-group">
+                            <label for="captureTime">Date & Time / तारीख और समय <span class="required">*</span></label>
+                            <input type="datetime-local" id="captureTime" required>
+                            <p class="helper-text">When did you notice this issue?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="report-form-content">
+                <div class="report-section">
+                    <h2 class="section-title"><i class="fa-solid fa-location-dot"></i> Location / स्थान</h2>
+                    
+                    <div class="form-group">
+                        <label>Choose Location Method</label>
+                        <div class="button-group">
+                            <button type="button" class="btn" id="urlMethodBtn">
+                                <i class="fa-solid fa-link"></i> Paste Google Maps URL
+                            </button>
+                            <button type="button" class="btn" id="pinMethodBtn">
+                                <i class="fa-solid fa-map-pin"></i> Pin on Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- URL Method -->
+                    <div class="location-content" id="urlContent">
+                        <div class="form-group">
+                            <label for="mapsUrl">Google Maps URL from Search Bar</label>
+                            <input type="text" id="mapsUrl" placeholder="Paste URL from browser address bar...">
+                            <p class="helper-text">Copy the URL from your browser's address bar (not the share link)</p>
+                            <div class="preview-box" id="urlStatus" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Pin Method -->
+                    <div class="location-content" id="pinContent">
+                        <div class="form-group">
+                            <label>Pin Location</label>
+                            <div id="map"></div>
+                            <div class="preview-box success" id="mapStatus" style="display: none;">
+                                <i class="fa-solid fa-location-dot"></i> Drag the marker to adjust location
+                            </div>
+                        </div>
+                    </div>
+                </div></div>
+
+                <!-- Submit Section -->
+                <div class="report-submit-section">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check"></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>Submitting Report...</h3>
+            <p>Please wait while we process your report</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <button type="button" class="close-btn" id="closeSuccessBtn" style="position: absolute; top: 20px; right: 20px; z-index: 10001;"><i class="fa-solid fa-times"></i></button>
+            <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+            <h2>Report Submitted Successfully!</h2>
+            <p>Save this ID for future reference</p>
+            <div class="report-id" id="reportIdDisplay"></div>
+            <button class="copy-btn" id="copyIdBtn"><i class="fa-solid fa-clipboard"></i> Copy Report ID</button>
+            <button class="btn" style="margin-top: 20px; margin-left: auto; margin-right: auto; border: none; background: #e2e8f0; color: #475569; display: block;" onclick="location.reload()">
+                <i class="fa-solid fa-plus"></i> Submit Another Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/reportconfig.js"></script>
+    <script type="module" src="js/report.js"></script>
+</body>
+
+</html>

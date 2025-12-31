@@ -1,0 +1,36 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Secure configuration files with API keys and credentials
+js/userloginconfig.js
+js/reportconfig.js
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist/
+build/
+
+# Dependencies
+/bower_components/
+
+# Testing
+coverage/
+.nyc_output/
+
+# OS files
+Thumbs.db
+.DS_Store
