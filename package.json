@@ -2,11 +2,7 @@
   "name": "civic-issue-reporting-website",
   "version": "1.0.0",
   "description": "A civic issue reporting website for public use.",
-  "scripts": {
-    "start": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel deploy"
-  },
+  "scripts": {},
   "dependencies": {},
   "devDependencies": {},
   "license": "MIT"
