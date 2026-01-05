@@ -1,4 +1,4 @@
-// Report Form Logic
+// Report Form Logic - IMPROVED LOCATION ACCURACY
 
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -19,10 +19,23 @@ try {
 
 // Load Google Maps API dynamically with key from reportconfig.js
 function loadGoogleMapsAPI() {
-    return new Promise((resolve) => {
-        // Only load if not already loaded
+    return new Promise((resolve, reject) => {
+        // Check if Google Maps is already loaded
+        if (typeof google !== 'undefined' && google.maps) {
+            mapsAPILoaded = true;
+            resolve();
+            return;
+        }
+
+        // Check if loading is already in progress
         if (mapsAPILoaded) {
             resolve();
+            return;
+        }
+
+        // Check if API key is defined
+        if (typeof GOOGLE_MAPS_API_KEY === 'undefined') {
+            reject(new Error('GOOGLE_MAPS_API_KEY is not defined. Please check reportconfig.js'));
             return;
         }
 
@@ -34,20 +47,23 @@ function loadGoogleMapsAPI() {
             mapsAPILoaded = true;
             resolve();
         };
+        script.onerror = () => {
+            reject(new Error('Failed to load Google Maps API'));
+        };
         document.head.appendChild(script);
     });
 }
 
-// Load Google Maps API when needed
-loadGoogleMapsAPI();
+// Don't auto-load on page load - only when pin method is selected
 
 // Global Variables
 let capturedImageFile = null;
 let selectedCoords = null;
 let locationMethod = null;
-let map, marker;
+let map, marker, accuracyCircle;
 let cameraStream = null;
 let mapsAPILoaded = false;
+let watchId = null;
 
 // DOM Elements
 const takePhotoBtn = document.getElementById('takePhotoBtn');
@@ -98,19 +114,13 @@ function setCurrentDateTime() {
 // Photo Upload Handlers
 takePhotoBtn.addEventListener('click', async () => {
     try {
-        // Request camera permission and open camera modal
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'environment' },
             audio: false
         });
 
-        // Save the stream globally
         cameraStream = stream;
-
-        // Open camera modal
         cameraModal.classList.add('active');
-
-        // Play the video stream
         cameraFeed.srcObject = stream;
         cameraFeed.play();
     } catch (error) {
@@ -127,45 +137,34 @@ takePhotoBtn.addEventListener('click', async () => {
     }
 });
 
-// Close camera functions
 function closeCameraModal() {
     cameraModal.classList.remove('active');
-    
-    // Stop camera stream
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
         cameraStream = null;
     }
-    
     cameraFeed.srcObject = null;
 }
 
 closeCameraBtn.addEventListener('click', closeCameraModal);
 cancelCameraBtn.addEventListener('click', closeCameraModal);
 
-// Capture photo from camera
 capturePhotoBtn.addEventListener('click', async () => {
     try {
-        // Set canvas size to match video
         photoCanvas.width = cameraFeed.videoWidth;
         photoCanvas.height = cameraFeed.videoHeight;
 
-        // Draw current video frame to canvas
         const context = photoCanvas.getContext('2d');
         context.drawImage(cameraFeed, 0, 0);
 
-        // Convert canvas to blob and create file
         photoCanvas.toBlob(blob => {
-            // Create a File object from the blob
             const timestamp = Date.now();
             capturedImageFile = new File([blob], `photo_${timestamp}.jpg`, { type: 'image/jpeg' });
 
-            // Update preview
             photoPreview.innerHTML = `<i class="fa-solid fa-check"></i> Photo captured: photo_${timestamp}.jpg`;
             photoPreview.classList.add('success');
             photoPreview.classList.remove('error');
 
-            // Close camera modal
             closeCameraModal();
         }, 'image/jpeg', 0.95);
     } catch (error) {
@@ -181,13 +180,11 @@ galleryBtn.addEventListener('click', () => {
 function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             alert('File size should be less than 5MB');
             return;
         }
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             alert('Please select a valid image file');
             return;
@@ -212,6 +209,12 @@ urlMethodBtn.addEventListener('click', (e) => {
     urlMethodBtn.classList.add('active');
     pinMethodBtn.classList.remove('active');
     selectedCoords = null;
+    
+    // Stop watching if active
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
 });
 
 pinMethodBtn.addEventListener('click', async (e) => {
@@ -223,79 +226,208 @@ pinMethodBtn.addEventListener('click', async (e) => {
     urlMethodBtn.classList.remove('active');
     selectedCoords = null;
 
-    // Ensure Google Maps API is loaded
-    await loadGoogleMapsAPI();
-
-    // Initialize map with default center if not already
-    if (!map) {
-        initMap();
-    }
-
-    // Request location with continuous refinement for better accuracy
-    if (navigator.geolocation) {
+    try {
+        // Show loading message
+        mapStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Google Maps...';
         mapStatus.style.display = 'flex';
-        mapStatus.innerHTML = '<i class="fa-solid fa-location-dot"></i> 📡 Requesting location permission...';
-        
-        // Show helpful alert
-        alert('🛰️ GPS is searching for satellites.\nPlease wait, do not navigate away!');
-        
-        let bestAccuracy = Infinity;
-        let bestPosition = null;
-        let watchId = null;
-        let lockTimeout = null;
-        
-        // Function to update map with best position
-        const updateBestPosition = () => {
-            if (bestPosition) {
-                const lat = bestPosition.coords.latitude;
-                const lng = bestPosition.coords.longitude;
-                const accuracy = bestPosition.coords.accuracy;
-                selectedCoords = { lat, lng };
-                if (marker) marker.setPosition(selectedCoords);
-                if (map) map.setCenter(selectedCoords);
-                mapStatus.innerHTML = `<i class="fa-solid fa-location-dot"></i> Location: ${lat.toFixed(6)}, ${lng.toFixed(6)} (±${Math.round(accuracy)}m)`;
-            }
-        };
-        
-        // Start watching position for continuous refinement (30 seconds)
-        watchId = navigator.geolocation.watchPosition(
-            (position) => {
-                const accuracy = position.coords.accuracy;
-                
-                // Keep the position with best (lowest) accuracy
-                if (accuracy < bestAccuracy) {
-                    bestAccuracy = accuracy;
-                    bestPosition = position;
-                    updateBestPosition();
-                }
-                
-                // Auto-lock if accuracy is excellent (±10m or better)
-                if (accuracy <= 10) {
-                    navigator.geolocation.clearWatch(watchId);
-                    if (lockTimeout) clearTimeout(lockTimeout);
-                    mapStatus.innerHTML = `<i class="fa-solid fa-check"></i> ✅ Locked ±${Math.round(accuracy)}m`;
-                }
-            },
-            (err) => {
-                console.warn('Geolocation error:', err);
-            },
-            { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
-        );
-        
-        // Auto-lock after 30 seconds of watching
-        lockTimeout = setTimeout(() => {
-            navigator.geolocation.clearWatch(watchId);
-            if (bestPosition) {
-                mapStatus.innerHTML = `<i class="fa-solid fa-check"></i> ✅ Best found ±${Math.round(bestAccuracy)}m`;
-            } else {
-                mapStatus.innerHTML = '<i class="fa-solid fa-map-pin"></i> Drag marker to set location.';
-            }
-        }, 30000);
-    } else {
-        mapStatus.innerHTML = '<i class="fa-solid fa-map-pin"></i> Geolocation not supported.';
+
+        // Wait for Google Maps API to load
+        await loadGoogleMapsAPI();
+
+        // Initialize map if not already initialized
+        if (!map) {
+            await initMap();
+        }
+
+        // Start location tracking
+        startHighAccuracyLocationTracking();
+    } catch (error) {
+        console.error('Error loading Google Maps:', error);
+        mapStatus.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> ❌ Error loading maps. Please check your API key in reportconfig.js';
         mapStatus.style.display = 'flex';
+        alert('Failed to load Google Maps. Please ensure:\n1. reportconfig.js file exists\n2. GOOGLE_MAPS_API_KEY is properly set\n3. Your API key is valid');
     }
 });
+
+// IMPROVED: Advanced location tracking with multiple strategies
+function startHighAccuracyLocationTracking() {
+    if (!navigator.geolocation) {
+        mapStatus.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Geolocation not supported on this device.';
+        mapStatus.style.display = 'flex';
+        return;
+    }
+
+    mapStatus.style.display = 'flex';
+    mapStatus.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> 🛰️ Acquiring GPS satellites...';
+    
+    let positionCount = 0;
+    let positionSum = { lat: 0, lng: 0 };
+    let bestAccuracy = Infinity;
+    let bestPosition = null;
+    const maxSamples = 10; // Collect up to 10 position samples
+    const timeout = 45000; // 45 seconds total timeout
+    
+    // Create accuracy visualization circle
+    if (!accuracyCircle && map) {
+        accuracyCircle = new google.maps.Circle({
+            map: map,
+            fillColor: '#4285F4',
+            fillOpacity: 0.15,
+            strokeColor: '#4285F4',
+            strokeOpacity: 0.4,
+            strokeWeight: 2
+        });
+    }
+    
+    const startTime = Date.now();
+    
+    // Watch position with high accuracy settings
+    watchId = navigator.geolocation.watchPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            const altitude = position.coords.altitude;
+            const speed = position.coords.speed;
+            
+            positionCount++;
+            
+            // Track best position
+            if (accuracy < bestAccuracy) {
+                bestAccuracy = accuracy;
+                bestPosition = position;
+            }
+            
+            // Accumulate positions for averaging
+            positionSum.lat += lat;
+            positionSum.lng += lng;
+            
+            // Calculate averaged position
+            const avgLat = positionSum.lat / positionCount;
+            const avgLng = positionSum.lng / positionCount;
+            
+            // Update map
+            selectedCoords = { lat: avgLat, lng: avgLng };
+            
+            if (marker) {
+                marker.setPosition(selectedCoords);
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(() => marker.setAnimation(null), 2000);
+            }
+            
+            if (map) {
+                map.setCenter(selectedCoords);
+            }
+            
+            // Update accuracy circle
+            if (accuracyCircle) {
+                accuracyCircle.setCenter(selectedCoords);
+                accuracyCircle.setRadius(accuracy);
+            }
+            
+            // Enhanced status with more details
+            const elapsedTime = Math.round((Date.now() - startTime) / 1000);
+            let statusMsg = `<i class="fa-solid fa-location-crosshairs"></i> `;
+            statusMsg += `Accuracy: ±${Math.round(accuracy)}m | `;
+            statusMsg += `Samples: ${positionCount}/${maxSamples} | `;
+            statusMsg += `Time: ${elapsedTime}s`;
+            
+            if (altitude !== null) {
+                statusMsg += ` | Alt: ${Math.round(altitude)}m`;
+            }
+            
+            mapStatus.innerHTML = statusMsg;
+            
+            // Auto-lock conditions (improved)
+            const shouldLock = 
+                (accuracy <= 5 && positionCount >= 3) ||  // Very high accuracy with few samples
+                (accuracy <= 10 && positionCount >= 5) || // High accuracy with moderate samples
+                (accuracy <= 20 && positionCount >= 8) || // Good accuracy with many samples
+                positionCount >= maxSamples;              // Max samples reached
+            
+            if (shouldLock) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                
+                // Use best single position if it's significantly better than average
+                if (bestAccuracy < accuracy * 0.7) {
+                    selectedCoords = {
+                        lat: bestPosition.coords.latitude,
+                        lng: bestPosition.coords.longitude
+                    };
+                    marker.setPosition(selectedCoords);
+                    map.setCenter(selectedCoords);
+                }
+                
+                mapStatus.innerHTML = `<i class="fa-solid fa-check-circle"></i> ✅ Location locked! Accuracy: ±${Math.round(bestAccuracy)}m (${positionCount} samples)`;
+                marker.setAnimation(null);
+                
+                // Visual feedback
+                if (accuracyCircle) {
+                    accuracyCircle.setOptions({
+                        fillColor: '#34A853',
+                        strokeColor: '#34A853'
+                    });
+                }
+            }
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            let errorMsg = '';
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMsg = '❌ Location permission denied. Please enable location access.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMsg = '⚠️ Location unavailable. Please check GPS settings.';
+                    break;
+                case error.TIMEOUT:
+                    errorMsg = '⏱️ Location request timeout. Retrying...';
+                    // Retry on timeout
+                    setTimeout(() => startHighAccuracyLocationTracking(), 2000);
+                    return;
+                default:
+                    errorMsg = '❌ Unknown location error occurred.';
+            }
+            
+            mapStatus.innerHTML = `<i class="fa-solid fa-exclamation-circle"></i> ${errorMsg}`;
+            
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: timeout,
+            maximumAge: 0 // Always get fresh location
+        }
+    );
+    
+    // Auto-stop after timeout
+    setTimeout(() => {
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            
+            if (positionCount > 0) {
+                mapStatus.innerHTML = `<i class="fa-solid fa-check"></i> ✅ Best location: ±${Math.round(bestAccuracy)}m (${positionCount} samples)`;
+                
+                if (marker) marker.setAnimation(null);
+                
+                if (accuracyCircle) {
+                    accuracyCircle.setOptions({
+                        fillColor: '#FBBC04',
+                        strokeColor: '#FBBC04'
+                    });
+                }
+            } else {
+                mapStatus.innerHTML = '<i class="fa-solid fa-map-pin"></i> ⚠️ Could not get location. Drag marker manually.';
+            }
+        }
+    }, timeout);
+}
 
 // URL Coordinate Extraction
 mapsUrlInput.addEventListener('input', (e) => {
@@ -345,91 +477,29 @@ function updateMapStatus() {
     }
 }
 
-// Initialize Map with Location Permission and accuracy refinement
+// Initialize Map
 async function initMap() {
     let initialCenter = { lat: 26.8467, lng: 80.9462 }; // Kanpur default
     
-    // Request location permission and get initial position
-    if (navigator.geolocation) {
-        try {
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                });
-            });
-            
-            initialCenter = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            
-            mapStatus.innerHTML = '<i class="fa-solid fa-location-dot"></i> Initial location detected! Refining accuracy…';
-            mapStatus.style.display = 'flex';
-            
-            // Watch for better accuracy
-            watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
-                    
-                    initialCenter = { lat, lng };
-                    
-                    // Update marker position
-                    if (marker) {
-                        marker.setPosition(initialCenter);
-                    }
-                    
-                    // Center map
-                    if (map) {
-                        map.setCenter(initialCenter);
-                    }
-                    
-                    selectedCoords = initialCenter;
-                    
-                    // Check if accuracy is good enough to lock
-                    if (accuracy <= 15) {
-                        navigator.geolocation.clearWatch(watchId);
-                        mapStatus.innerHTML = `<i class="fa-solid fa-location-dot"></i> Location locked ±${Math.round(accuracy)}m`;
-                        mapStatus.style.display = 'flex';
-                    } else {
-                        mapStatus.innerHTML = `<i class="fa-solid fa-location-dot"></i> Refining… ±${Math.round(accuracy)}m accuracy`;
-                        mapStatus.style.display = 'flex';
-                    }
-                },
-                (error) => {
-                    console.log('Watch error:', error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                }
-            );
-        } catch (error) {
-            console.log('Location permission denied or unavailable:', error);
-            mapStatus.innerHTML = '<i class="fa-solid fa-map-pin"></i> Using default location. Drag marker to set your location.';
-            mapStatus.style.display = 'flex';
-        }
-    }
-    
     map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 15,
+        zoom: 18, // Increased zoom for better accuracy
         center: initialCenter,
-        mapTypeControl: true
+        mapTypeControl: true,
+        mapTypeId: 'hybrid', // Satellite view with labels for better positioning
+        zoomControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
     });
 
     marker = new google.maps.Marker({
         position: initialCenter,
         map: map,
         draggable: true,
-        animation: google.maps.Animation.DROP
+        animation: google.maps.Animation.DROP,
+        title: 'Drag me to adjust location'
     });
 
     selectedCoords = initialCenter;
-    updateMapStatus();
 
     marker.addListener('dragend', () => {
         const pos = marker.getPosition();
@@ -437,10 +507,10 @@ async function initMap() {
             lat: pos.lat(),
             lng: pos.lng()
         };
-        updateMapStatus();
+        mapStatus.innerHTML = `<i class="fa-solid fa-map-pin"></i> Manual location: ${selectedCoords.lat.toFixed(7)}, ${selectedCoords.lng.toFixed(7)}`;
+        mapStatus.style.display = 'flex';
     });
     
-    // Map click to move marker
     map.addListener('click', (e) => {
         const latLng = e.latLng;
         marker.setPosition(latLng);
@@ -448,7 +518,8 @@ async function initMap() {
             lat: latLng.lat(),
             lng: latLng.lng()
         };
-        updateMapStatus();
+        mapStatus.innerHTML = `<i class="fa-solid fa-mouse-pointer"></i> Clicked location: ${selectedCoords.lat.toFixed(7)}, ${selectedCoords.lng.toFixed(7)}`;
+        mapStatus.style.display = 'flex';
     });
 }
 
@@ -478,7 +549,6 @@ async function uploadToCloudinary(file) {
 reportForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Validation
     if (!capturedImageFile) {
         alert('⚠️ Please upload a photo of the issue!');
         return;
@@ -501,20 +571,16 @@ reportForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Show loading
     loadingOverlay.classList.add('active');
 
     try {
-        // Upload image to Cloudinary
         const imageUrl = await uploadToCloudinary(capturedImageFile);
 
-        // Get current user (should be user ID or email string)
         let currentUser = localStorage.getItem('currentUser');
         if (!currentUser) {
             currentUser = 'anonymous';
         }
 
-        // Prepare data for Firestore
         const reportData = {
             issueType: issueType,
             description: description,
@@ -527,7 +593,6 @@ reportForm.addEventListener('submit', async (e) => {
             timestamp: new Date().toISOString()
         };
 
-        // Add to Firestore (only if Firebase is initialized)
         let docRef;
         if (db) {
             docRef = await addDoc(collection(db, 'reports'), reportData);
@@ -536,10 +601,7 @@ reportForm.addEventListener('submit', async (e) => {
             docRef = { id: 'LOCAL_' + Date.now() };
         }
 
-        // Hide loading
         loadingOverlay.classList.remove('active');
-
-        // Show success modal with report ID
         reportIdDisplay.textContent = docRef.id;
         successModal.classList.add('active');
 
@@ -562,13 +624,11 @@ copyIdBtn.addEventListener('click', () => {
     });
 });
 
-// Close success modal
 closeSuccessBtn.addEventListener('click', () => {
     successModal.classList.remove('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// Logout functionality
 if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -583,5 +643,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setCurrentDateTime();
 });
 
-// Make initMap globally accessible for Google Maps
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+    }
+});
+
 window.initMap = initMap;
