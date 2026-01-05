@@ -8,13 +8,13 @@
 
 // Firebase Configuration
 // Project: civic-portal-aca20
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDXEUuqoPy3WUGq9q9dNDHY5W1rJNBkKJc",
-    authDomain: "civic-portal-aca20.firebaseapp.com",
-    projectId: "civic-portal-aca20",
-    storageBucket: "civic-portal-aca20.firebasestorage.app",
-    messagingSenderId: "1098210123438",
-    appId: "1:1098210123438:web:1247b139cd90fafc23973f"
+const firebaseConfig1 = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_1,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_1,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_1,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_1,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_1,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_1
 };
 
 // Cloudinary Configuration
@@ -25,7 +25,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'photos';
 // Google Maps API Key
 // Get your API key from https://console.cloud.google.com/
 // Make sure to restrict it to your domain for security
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBzaoydl4CldkAqe-l3z22U9DX8mXMDDks';
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 // ==========================================
 // IMPORTANT SECURITY NOTES
