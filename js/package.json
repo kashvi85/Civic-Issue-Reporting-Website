@@ -1,0 +1,9 @@
+{
+  "name": "civic-issue-reporting-website",
+  "version": "1.0.0",
+  "description": "A civic issue reporting website for public use.",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {},
+  "license": "MIT"
+}
