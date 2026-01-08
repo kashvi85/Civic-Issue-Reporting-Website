@@ -1,10 +1,7 @@
 // Admin Whitelist - Only emails listed here can login
 const ADMIN_WHITELIST = [
     "vidhiagarwalmay@gmail.com",
-    "manager@civic.com",
-    "supervisor@civic.com",
-    "coordinator@civic.com",
-    "lead@civic.com"
+    "gouriagrawal2007@gmail.com",
 ];
 
 // Function to check if email is whitelisted

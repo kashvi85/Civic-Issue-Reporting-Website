@@ -1,10 +1,8 @@
+// Import Firebase configs
+import { FIREBASE_CONFIG_ADMIN_AUTH, FIREBASE_CONFIG_REPORTS } from './api-keys.js';
+
 // Firebase Configuration - civic-auth-a76ac (Google Auth Enabled)
-const firebaseConfig = {
-  apiKey: "AIzaSyAUYQOsFD5sWNG-oO2azKPXqYYoM9nrgbU",
-  authDomain: "civic-auth-a76ac.firebaseapp.com",
-  projectId: "civic-auth-a76ac",
-  appId: "1:1020268837274:web:324e40dc06ebe0a6df2223"
-};
+const firebaseConfig = FIREBASE_CONFIG_ADMIN_AUTH;
 
 // Initialize Firebase
 let auth;
@@ -32,14 +30,7 @@ if (typeof firebase !== 'undefined' && firebase.initializeApp) {
 }
 
 // Initialize auth provider for reports database if needed
-const reportsConfig = {
-  apiKey: "AIzaSyDXEUuqoPy3WUGq9q9dNDHY5W1rJNBkKJc",
-  authDomain: "civic-portal-aca20.firebaseapp.com",
-  projectId: "civic-portal-aca20",
-  storageBucket: "civic-portal-aca20.firebasestorage.app",
-  messagingSenderId: "1098210123438",
-  appId: "1:1098210123438:web:1247b139cd90fafc23973f"
-};
+const reportsConfig = FIREBASE_CONFIG_REPORTS;
 
 // Google Sign-In Handler for Admin Login Page
 (function () {

@@ -626,7 +626,8 @@ copyIdBtn.addEventListener('click', () => {
 
 closeSuccessBtn.addEventListener('click', () => {
     successModal.classList.remove('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Refresh page to clear form and prevent duplicate submissions
+    window.location.reload();
 });
 
 if (logoutBtn) {

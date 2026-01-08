@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Civic Issue Reporting</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <style>
+    /* Legend styling */
+    #legend {
+      margin: 10px 0;
+    }
+    #legend span {
+      font-size: 18px;
+      margin-right: 5px;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+
+    /* Status badge styling */
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      text-transform: capitalize;
+      margin: 10px 0;
+    }
+
+    .status-badge.pending {
+      background-color: #ff9800;
+      color: white;
+    }
+
+    .status-badge.in-progress {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    .status-badge.resolved,
+    .status-badge.closed {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    /* Status card */
+    #statusCard {
+      background: white;
+      border-left: 5px solid #1565c0;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    #statusCard.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Progress tracker */
+    .progress-tracker {
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .progress-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .progress-step::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      right: -50%;
+      height: 2px;
+      background-color: #e0e0e0;
+      z-index: 1;
+    }
+
+    .progress-step:last-child::after {
+      display: none;
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: bold;
+      color: #666;
+      transition: 0.3s;
+    }
+
+    .progress-step.completed .step-circle {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .progress-step.active .step-circle {
+      background-color: #1565c0;
+      color: white;
+      box-shadow: 0 0 10px rgba(21, 101, 192, 0.5);
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Progress line */
+    #progressLineActive {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      height: 2px;
+      background-color: #1565c0;
+      width: 0%;
+      transition: width 0.5s ease;
+      z-index: 1;
+    }
+
+    /* Error message */
+    #errorMessage {
+      color: #d32f2f;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #ffebee;
+      margin-top: 10px;
+      display: none;
+      text-align: center;
+    }
+
+    #errorMessage.show {
+      display: block;
+    }
+
+    .track-input.error {
+      border-color: #d32f2f !important;
+      background-color: #ffebee;
+    }
+
+    /* Loading spinner */
+    #loading {
+      display: none;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    #loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #1565c0;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #statusDetails {
+      line-height: 1.8;
+      color: #333;
+    }
+
+    #statusDetails p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO SECTION -->
+<section class="hero">
+
+  <!-- CENTER HEADING -->
+  <header class="hero-header">
+    <h1>🏙️ Civic Issue Reporting</h1>
+    <p class="tagline">Report today. Resolve tomorrow.</p>
+  </header>
+
+  <div class="hero-content">
+
+    <!-- LEFT PANEL -->
+    <aside class="hero-left">
+
+      <!-- LOGIN SECTIONS -->
+      <div class="login-container">
+        <div class="login-section">
+          <h3>For Administrators</h3>
+          <button type="button" onclick="window.location.href='admin-login-new.html'">Admin Login</button>
+        </div>
+        <div class="login-section">
+          <h3>For Citizens</h3>
+          <button type="button" onclick="window.location.href='index.html'">User Login</button>
+        </div>
+      </div>
+
+      <!-- ====== TRACK COMPLAINT PANEL ====== -->
+      <div class="track-panel" style="margin-top:30px;">
+        <h3>Track Your Complaint</h3>
+        <p class="track-text">Enter your complaint ID to see the status</p>
+
+        <form id="trackForm">
+          <input
+            type="text"
+            id="complaintId"
+            class="track-input"
+            placeholder="Enter Complaint ID"
+            required
+          >
+          
+          <div id="errorMessage"></div>
+
+          <button type="submit" class="track-btn" id="trackBtn">
+            Track Complaint
+          </button>
+
+          <div id="loading">
+            <div class="spinner"></div>
+            <p>Searching for your complaint...</p>
+          </div>
+
+          <!-- Status Card -->
+          <div id="statusCard">
+            <h3 id="displayId"></h3>
+            <div id="statusBadge" class="status-badge"></div>
+            
+            <!-- Progress Tracker -->
+            <div class="progress-tracker">
+              <div id="progressLineActive"></div>
+              <div class="progress-step" id="step-pending">
+                <div class="step-circle">1</div>
+                <div class="step-label">Pending</div>
+              </div>
+              <div class="progress-step" id="step-in-progress">
+                <div class="step-circle">2</div>
+                <div class="step-label">In Progress</div>
+              </div>
+              <div class="progress-step" id="step-resolved">
+                <div class="step-circle">3</div>
+                <div class="step-label">Resolved</div>
+              </div>
+            </div>
+
+            <!-- Status Details -->
+            <div id="statusDetails"></div>
+          </div>
+        </form>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT PANEL -->
+    <main class="hero-right">
+      <h3>📍 Issue Map</h3>
+      <div id="map"></div>
+
+      <!-- Marker Legend -->
+      <div id="legend">
+        <h4>Marker Status Guide:</h4>
+        <p><span style="color:red; font-weight:bold;">●</span> Pending</p>
+        <p><span style="color:orange; font-weight:bold;">●</span> In Progress</p>
+        <p><span style="color:green; font-weight:bold;">●</span> Resolved</p>
+      </div>
+    </main>
+
+  </div>
+</section>
+
+<!-- ABOUT US SECTION -->
+<section id="about-us">
+
+  <!-- CENTER TITLE -->
+  <h1 class="about-title">About Us – Civic Issue Portal</h1>
+  <p class="about-slogan">"Your Voice. Our Action."</p>
+
+  <div class="about-container">
+
+    <!-- LEFT CONTENT -->
+    <div class="about-left">
+      <div class="about-block">
+        <h2>🎯 Our Mission</h2>
+        <ul>
+          <li>🏙 Empower citizens to report civic issues</li>
+          <li>🌱 Build cleaner and safer communities</li>
+          <li>🤝 Improve coordination with authorities</li>
+        </ul>
+      </div>
+
+      <div class="about-block">
+        <h2>🛠 What We Do</h2>
+        <ul>
+          <li>📲 Easy complaint submission</li>
+          <li>🕒 Real-time complaint tracking</li>
+          <li>💡 Technology-driven governance</li>
+        </ul>
+      </div>
+
+      <div class="about-block">
+        <h2>🌟 Our Vision</h2>
+        <ul>
+          <li>"Report Today, Improve Tomorrow!"</li>
+          <li>🏙 Smart and responsive cities</li>
+          <li>🙌 Active citizen participation</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <!-- RIGHT SIDE : IMAGES -->
+<div class="about-right">
+    <img src="images/civic_issue.jpg" alt="Civic issue" loading="lazy">
+    <img src="images/community.jpg" alt="Community" loading="lazy">
+</div>
+
+
+  </div>
+</section>
+
+
+
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Map JS -->
+<script type="module" src="js/map.js"></script>
+
+<!-- Track Complaint Firebase Script -->
+<script type="module" src="js/track.js"></script>
+</body>
+</html>

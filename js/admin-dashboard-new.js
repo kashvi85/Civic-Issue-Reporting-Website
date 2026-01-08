@@ -8,14 +8,7 @@ window.reportsDb = null;
 setTimeout(() => {
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
         // Initialize a second app for reports database if not already done
-        const reportConfig = {
-            apiKey: "AIzaSyDXEUuqoPy3WUGq9q9dNDHY5W1rJNBkKJc",
-            authDomain: "civic-portal-aca20.firebaseapp.com",
-            projectId: "civic-portal-aca20",
-            storageBucket: "civic-portal-aca20.firebasestorage.app",
-            messagingSenderId: "1098210123438",
-            appId: "1:1098210123438:web:1247b139cd90fafc23973f"
-        };
+        const reportConfig = window.FIREBASE_CONFIG_REPORTS;
 
         try {
             const reportApp = firebase.initializeApp(reportConfig, 'reports');
@@ -83,7 +76,7 @@ function logout() {
         localStorage.removeItem('currentAdmin');
         localStorage.removeItem('adminAuthToken');
         alert('Logged out successfully!');
-        window.location.href = 'admin-login-new.html';
+        window.location.href = 'home.html';
     }
 }
 

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="css/admin-dashboard.css">
 </head>
 
 <body>
@@ -31,7 +31,7 @@
                 <div class="stat-icon">📊</div>
                 <div class="stat-info">
                     <h3>Total Reports</h3>
-                    <p class="stat-number">47</p>
+                    <p class="stat-number">0</p>
                 </div>
             </div>
 
@@ -39,7 +39,7 @@
                 <div class="stat-icon">⚠️</div>
                 <div class="stat-info">
                     <h3>Pending</h3>
-                    <p class="stat-number">18</p>
+                    <p class="stat-number">0</p>
                 </div>
             </div>
 
@@ -47,7 +47,7 @@
                 <div class="stat-icon">🔄</div>
                 <div class="stat-info">
                     <h3>In Progress</h3>
-                    <p class="stat-number">15</p>
+                    <p class="stat-number">0</p>
                 </div>
             </div>
 
@@ -55,7 +55,7 @@
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
                     <h3>Resolved</h3>
-                    <p class="stat-number">8</p>
+                    <p class="stat-number">0</p>
                 </div>
             </div>
         </div>
@@ -72,9 +72,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="admin-list.js"></script>
-    <script src="admin-auth-new.js"></script>
-    <script src="admin-dashboard-new.js"></script>
+    <script src="js/admin-list.js"></script>
+    <script type="module" src="js/admin-auth-new.js"></script>
+    <script type="module" src="js/reportconfig.js"></script>
+    <script src="js/admin-dashboard-new.js"></script>
 </body>
 
 </html>

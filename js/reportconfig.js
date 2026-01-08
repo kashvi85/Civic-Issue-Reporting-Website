@@ -1,31 +1,25 @@
+// Import API keys from separate file
+import { FIREBASE_CONFIG_REPORTS, CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, GOOGLE_MAPS_API_KEY } from './api-keys.js';
+
+// Make global for compatibility
+window.FIREBASE_CONFIG_REPORTS = FIREBASE_CONFIG_REPORTS;
 
 // Firebase Configuration
 // Project: civic-portal-aca20
-const FIREBASE_CONFIG = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_1,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_1
-};
+export const FIREBASE_CONFIG = FIREBASE_CONFIG_REPORTS;
 
 // Cloudinary Configuration
 // Sign up at https://cloudinary.com for free account
-const CLOUDINARY_CLOUD_NAME = 'ddxcx5d7w';
-const CLOUDINARY_UPLOAD_PRESET = 'photos';
+export const CLOUD_NAME = CLOUDINARY_CLOUD_NAME;
+export const UPLOAD_PRESET = CLOUDINARY_UPLOAD_PRESET;
 
 // Google Maps API Key
 // Get your API key from https://console.cloud.google.com/
 // Make sure to restrict it to your domain for security
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+export { GOOGLE_MAPS_API_KEY };
 
-// ==========================================
-// IMPORTANT SECURITY NOTES
-// ==========================================
-// 1. Never expose these keys in public repositories
-// 2. Use .env files or environment variables in production
-// 3. Restrict API keys to specific domains in provider dashboards
-// 4. Rotate keys periodically
-// 5. Monitor usage for suspicious activity
-// ==========================================
+// Make global for compatibility
+window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+window.GOOGLE_MAPS_API_KEY = GOOGLE_MAPS_API_KEY;
+window.CLOUDINARY_CLOUD_NAME = CLOUDINARY_CLOUD_NAME;
+window.CLOUDINARY_UPLOAD_PRESET = CLOUDINARY_UPLOAD_PRESET;

@@ -1,0 +1,272 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* ================= HERO SECTION ================= */
+
+.hero {
+  min-height: 100vh;
+  padding: 30px;
+  background: linear-gradient(to right, #e3f2fd, #ffffff);
+}
+
+/* Center heading */
+.hero-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.hero-header h1 {
+  font-size: 42px;
+  color: #0d47a1;
+}
+
+.tagline {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
+}
+
+.scroll-text {
+  margin-top: 8px;
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* ================= CONTENT LAYOUT ================= */
+
+.hero-content {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+/* ================= LEFT PANEL ================= */
+
+.hero-left {
+  width: 35%;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.hero-left h3 {
+  margin-bottom: 15px;
+  color: #1565c0;
+}
+
+/* Button rows */
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.hero-left button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #1565c0;
+  color: white;
+  font-size: 14px;
+  transition: 0.3s ease;
+}
+
+.hero-left button:hover {
+  background-color: #0d47a1;
+}
+
+/* Guest button */
+.guest-btn {
+  background-color: #2e7d32;
+  width: 100%;
+}
+
+.guest-btn:hover {
+  background-color: #1b5e20;
+}
+
+/* Login container for side-by-side layout */
+.login-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.login-section {
+  flex: 1;
+  text-align: center;
+}
+
+.login-section h3 {
+  margin-bottom: 10px;
+  color: #1565c0;
+}
+
+.login-section button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #1565c0;
+  color: white;
+  font-size: 14px;
+  transition: 0.3s ease;
+}
+
+.login-section button:hover {
+  background-color: #0d47a1;
+}
+
+/* ================= RIGHT PANEL ================= */
+
+.hero-right {
+  width: 65%;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.hero-right h3 {
+  color: #1565c0;
+  margin-bottom: 15px;
+}
+
+/* Map */
+#map {
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+/* Track text */
+.track-text {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* Track input */
+.track-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+/* Track button */
+.track-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #1565c0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.track-btn:hover {
+  background-color: #0d47a1;
+}
+
+/* Contact button */
+.contact-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.contact-btn:hover {
+  background-color: #4a148c;
+}
+
+/* ===== ABOUT US SECTION ===== */
+#about-us {
+  padding: 50px;
+  background: #f4f6f9;
+  font-family: Arial, sans-serif;
+}
+
+.about-title {
+  text-align: center;
+  color: #2c3e50;
+}
+
+.about-slogan {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+  color: #555;
+}
+
+.about-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* LEFT TEXT */
+.about-left {
+  flex: 2;
+}
+
+.about-block {
+  margin-bottom: 25px;
+}
+
+.about-block h2 {
+  color: #2980b9;
+  margin-bottom: 8px;
+}
+
+.about-block ul {
+  line-height: 1.8;
+  color: #333;
+}
+
+/* RIGHT IMAGE */
+.about-right {
+  flex: 1;
+}
+
+.about-right img {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .about-container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .about-right img {
+    margin-top: 20px;
+  }
+}
+
+

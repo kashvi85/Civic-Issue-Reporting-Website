@@ -4,9 +4,11 @@
 .env.*.local
 
 # Secure configuration files with API keys and credentials
+js/api-keys.js
 js/userloginconfig.js
 js/reportconfig.js
-
+js/track.js
+js/admin-auth-new.js
 
 # IDE and editor files
 .vscode/
