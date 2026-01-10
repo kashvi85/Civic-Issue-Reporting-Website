@@ -4,6 +4,17 @@
 const registerForm = document.getElementById('registerForm');
 const loginForm = document.getElementById('loginForm');
 
+// Helper function to get users from localStorage
+function getUsers() {
+    const users = localStorage.getItem('users');
+    return users ? JSON.parse(users) : {};
+}
+
+// Helper function to save users to localStorage
+function saveUsers(users) {
+    localStorage.setItem('users', JSON.stringify(users));
+}
+
 // =======================
 // REGISTRATION LOGIC
 // =======================
@@ -30,22 +41,20 @@ if (registerForm) {
 
         try {
             // Check if user already exists
-            const userDocRef = db.collection('users').doc(mobile);
-            const doc = await userDocRef.get();
-
-            if (doc.exists) {
+            const users = getUsers();
+            if (users[mobile]) {
                 alert("This mobile number is already registered. Please Login.");
                 return;
             }
 
-            // Create new user document
-            // Using Mobile Number as the Document ID for easy lookup
-            await userDocRef.set({
+            // Create new user
+            users[mobile] = {
                 fullName: fullName,
                 mobile: mobile,
-                password: password, // Note: In production, NEVER store plain text passwords. Use Firebase Auth or hash it.
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                password: password, // Note: In production, NEVER store plain text passwords. Hash them.
+                createdAt: new Date().toISOString()
+            };
+            saveUsers(users);
 
             alert("Registration Successful! Redirecting to Login...");
             window.location.href = 'index.html';
@@ -68,16 +77,14 @@ if (loginForm) {
         const password = document.getElementById('password').value;
 
         try {
-            // Get user document
-            const userDocRef = db.collection('users').doc(mobile);
-            const doc = await userDocRef.get();
+            // Get users
+            const users = getUsers();
+            const userData = users[mobile];
 
-            if (!doc.exists) {
+            if (!userData) {
                 alert("No account found with this mobile number. Please Register first.");
                 return;
             }
-
-            const userData = doc.data();
 
             // Verify Password
             if (userData.password === password) {
@@ -138,9 +145,8 @@ if (forgotPasswordLink) {
         const mobile = document.getElementById('resetMobile').value;
 
         try {
-            const userDoc = await db.collection('users').doc(mobile).get();
-
-            if (userDoc.exists) {
+            const users = getUsers();
+            if (users[mobile]) {
                 // User found
                 document.getElementById('verifiedMobile').value = mobile;
                 verifyMobileForm.style.display = 'none';
@@ -161,16 +167,16 @@ if (forgotPasswordLink) {
         const newPassword = document.getElementById('newPassword').value;
 
         try {
-            await db.collection('users').doc(mobile).update({
-                password: newPassword
-            });
-
-            alert("Password updated successfully! Please login with your new password.");
-            resetPasswordModal.classList.remove('active');
-
+            const users = getUsers();
+            if (users[mobile]) {
+                users[mobile].password = newPassword;
+                saveUsers(users);
+                alert("Password updated successfully! Please login with your new password.");
+                resetPasswordModal.classList.remove('active');
+            }
         } catch (error) {
             console.error("Error updating password:", error);
-            alert("Failed to update password. Please try again.");
+            alert("An error occurred. Please try again.");
         }
     });
 }
